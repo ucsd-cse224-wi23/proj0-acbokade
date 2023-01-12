@@ -11,7 +11,7 @@ import (
 
 type record struct {
 	Key [10]byte 
-	Value [10]byte
+	Value [90]byte
 }
 
 func checkByteOrder() binary.ByteOrder {
