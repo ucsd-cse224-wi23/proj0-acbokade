@@ -1,16 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
+	"io"
 	"log"
 	"os"
-	"io"
-	"encoding/binary"
 	"sort"
 	"unsafe"
 )
 
 type record struct {
-	Key [10]byte 
+	Key   [10]byte
 	Value [90]byte
 }
 
@@ -68,8 +69,12 @@ func main() {
 
 	// Custom comparator for sorting records array by key
 	sort.Slice(records, func(i, j int) bool {
-		// Sort the two recrods by the key
-		return string(records[i].Key[:]) < string(records[j].Key[:])
+		// Sort the two records by the key
+		isLessThan := bytes.Compare(records[i].Key[:], records[j].Key[:])
+		if isLessThan <= 0 {
+			return true
+		}
+		return false
 	})
 
 	// Read write file name
