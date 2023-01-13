@@ -59,6 +59,9 @@ func main() {
 		records = append(records, rec)
 	}
 
+	// Close input file
+	inputFile.Close()
+
 	// Custom comparator for sorting records array by key
 	sort.Slice(records, func(i, j int) bool {
 		// Sort the two records by the key
