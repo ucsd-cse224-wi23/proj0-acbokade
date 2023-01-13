@@ -2,33 +2,15 @@ package main
 
 import (
 	"bytes"
-	"encoding/binary"
 	"io"
 	"log"
 	"os"
 	"sort"
-	"unsafe"
 )
 
 type record struct {
 	Key   [10]byte
 	Value [90]byte
-}
-
-func checkByteOrder() binary.ByteOrder {
-	var byteOrder binary.ByteOrder
-	buffer := [2]byte{}
-	*(*uint16)(unsafe.Pointer(&buffer[0])) = uint16(0xABCD)
-
-	switch buffer {
-	case [2]byte{0xCD, 0xAB}:
-		byteOrder = binary.LittleEndian
-	case [2]byte{0xAB, 0xCD}:
-		byteOrder = binary.BigEndian
-	default:
-		log.Fatalln("Cannot determine the byte order")
-	}
-	return byteOrder
 }
 
 func main() {
@@ -43,29 +25,57 @@ func main() {
 	// Read input file name
 	inputFileName := os.Args[1]
 
-	// Open input file
+	// Read input file
 	inputFile, err := os.Open(inputFileName)
 
 	if err != nil {
 		log.Fatalf("Error in opening input file - %v", err)
 	}
+	// data, err := ioutil.ReadFile(inputFileName)
 
+	// if err != nil {
+	// 	log.Fatalf("Error in reading input file - %v", err)
+	// }
+
+	// Declare records array which will store individual record
 	records := []record{}
-	byteOrder := checkByteOrder()
 	for {
-		rec := record{}
-		err = binary.Read(inputFile, byteOrder, &rec)
+		// var key [10]byte
+		// // read first 10 bytes and copy it into key
+		// copy(key[:], data[:10])
+		// // remove first 10 bytes from data
+		// data = data[10:]
+		// var value [90]byte
+		// // read first 90 bytes and copy it into value
+		// copy(value[:], data[:90])
+		// // remove first 90 bytes from data
+		// data = data[90:]
+		// // Create record object with key and value
+		// rec := record{key, value}
+		// // Append record to the records array
+		// records = append(records, rec)
+
+		var key [10]byte
+		var value [90]byte
+		_, err := inputFile.Read(key[:])
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
 			log.Println(err)
 		}
+		_, err = inputFile.Read(value[:])
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Println(err)
+		}
+		// Create record object with key and value
+		rec := record{key, value}
 		// Append record to the records array
 		records = append(records, rec)
 	}
-	// Close the input file
-	inputFile.Close()
 
 	// Custom comparator for sorting records array by key
 	sort.Slice(records, func(i, j int) bool {
@@ -86,7 +96,11 @@ func main() {
 	}
 	// Writing records to the output file
 	for _, rec := range records {
-		binary.Write(outputFile, byteOrder, rec)
+		_, err = outputFile.Write(rec.Key[:])
+		_, err = outputFile.Write(rec.Value[:])
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	// Closing the output file
 	outputFile.Close()
